@@ -1,19 +1,14 @@
-
 /*    
     Copyright 2020, Network Research Lab at the University of Toronto.
-
     This file is part of CottonCandy.
-
     CottonCandy is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
-
     CottonCandy is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
-
     You should have received a copy of the GNU Lesser General Public License
     along with CottonCandy.  If not, see <https://www.gnu.org/licenses/>.
 */
@@ -26,7 +21,18 @@
 RTC_PCF8523 rtc;
 
 volatile bool allowReceiving = false;
+volatile int immediateInterruptPreventer = 0;
 const int myRTCInterruptPin = 1;
+
+//not being used rn
+unsigned long nextGatewayReqTime = 300;//seconds
+unsigned long receivingPeriod = 20;
+
+//this is being used rn
+unsigned long sleepTime = 60;//seconds
+unsigned long awakeTime = 30;//seconds
+
+bool firstGatewayContact = false;
 void rtcISR();
 
 ForwardEngine::ForwardEngine(byte *addr, DeviceDriver *driver)
@@ -317,13 +323,16 @@ bool ForwardEngine::run()
     //The core network operations are carried out here
     while (state == JOINED)
     {
-        if (!allowReceiving)
+		Serial.println(F("-----JOINED LOOP-----"));
+		delay(100);
+        if (!allowReceiving && firstGatewayContact)
         {
 			detachInterrupt(digitalPinToInterrupt(myRTCInterruptPin));
 			delay(1000);
-            Serial.println(F("RTC sleeps for 15s"));
+            Serial.print(F("RTC sleeps for: "));
+			Serial.println(sleepTime);
             rtc.deconfigureAllTimers();
-            rtc.enableCountdownTimer(PCF8523_FrequencySecond, 60); //15 seconds
+            rtc.enableCountdownTimer(PCF8523_FrequencySecond, sleepTime); //15 seconds
             delay(100);
             USBCON |= _BV(FRZCLK);
             delay(100);
@@ -349,11 +358,12 @@ bool ForwardEngine::run()
 				
             //Now the MCU has woken up, wait a while for the system to fully start up
             delay(100);
-            Serial.println(F("RTC receiving for 15s"));
+            Serial.print(F("RTC receiving for: "));
+			Serial.println(awakeTime);
 			delay(100);
             //Set up the alarm for the end of the receiving period
             rtc.deconfigureAllTimers();
-            rtc.enableCountdownTimer(PCF8523_FrequencySecond, 60); //15 seconds
+            rtc.enableCountdownTimer(PCF8523_FrequencySecond, awakeTime); //15 seconds
             attachInterrupt(digitalPinToInterrupt(myRTCInterruptPin), rtcISR, FALLING);
             delay(100);
             // Just to make sure allowReceiving is set to true
@@ -461,7 +471,6 @@ bool ForwardEngine::run()
                 {
                     //The parent node is proven to be alive
                     myParent.requireChecking = false;
-
                     //Update the last time we confirmed when the parent node was alive
                     myParent.lastAliveTime = getTimeMillis();
                 }
@@ -478,6 +487,9 @@ bool ForwardEngine::run()
             */
             case MESSAGE_GATEWAY_REQ:
             {
+				//delay(100);
+				//Serial.println(F("HAOSDHOAISHDOIAHSODIHAOSDIHOASIDHASOIHD"));
+				//delay(100);
                 //Dixin Wu update: if we broadcast the gatewayReq, we should only accept REQ from the parent
                 if (msg->srcAddr[0] != myParent.parentAddr[0] || msg->srcAddr[1] != myParent.parentAddr[1])
                 {
@@ -547,7 +559,44 @@ bool ForwardEngine::run()
                         GatewayRequest gwReq(myAddr, BROADCAST_ADDR, ((GatewayRequest *)msg)->seqNum, gatewayReqTime, childBackoffTime);
                         gwReq.send(myDriver, BROADCAST_ADDR);
                     }
-                }
+					
+					if (gatewayReqTime <= 1200e3)
+                    {
+                        //Calculate the end of the receiving period
+                        receivingPeriod = 15;
+                    }
+					else
+                    {
+                        receivingPeriod = 20;
+                    }
+					
+					if (!firstGatewayContact)
+                    {
+                        delay(100);
+						Serial.println(F("First time gateway REQ"));
+						delay(100);
+                        // the first request has been received from the gateway
+                        firstGatewayContact = true;
+                        //Set receiving flag to be true
+                        allowReceiving = true;
+						
+                        //rtc.deconfigureAllTimers();
+                        //rtc.enableCountdownTimer(PCF8523_FrequencySecond, 60); //15 seconds
+                        //Attach the interrupt
+                        //attachInterrupt(digitalPinToInterrupt(myRTCInterruptPin), rtcISR, FALLING);
+                        //delay(100);
+						delay(100);
+						Serial.println(F("RTC receives first for the first time ever"));
+						delay(100);
+						//Set up the alarm for the end of the receiving period
+						rtc.deconfigureAllTimers();
+						rtc.enableCountdownTimer(PCF8523_FrequencySecond, awakeTime); //15 seconds
+						attachInterrupt(digitalPinToInterrupt(myRTCInterruptPin), rtcISR, FALLING);
+						delay(100);
+						// Just to make sure allowReceiving is set to true
+						delay(100);
+                    }
+				}
                 break;
             }
             case MESSAGE_NODE_REPLY:
@@ -672,10 +721,8 @@ bool ForwardEngine::run()
             //Send out the checkAlive message to the parent
             CheckAlive checkMsg(myAddr, myParent.parentAddr, 0);
             checkMsg.send(myDriver, myParent.parentAddr);
-
             //record the current time
             checkingStartTime = getTimeMillis();
-
             Serial.print(F("Checking start at "));
             Serial.println(checkingStartTime);
         }*/
@@ -690,5 +737,12 @@ bool ForwardEngine::run()
 }
 void rtcISR()
 {
+	if (immediateInterruptPreventer == 0){
+		immediateInterruptPreventer++;
+		return;
+	}
+	delay(100);
+	Serial.println(F("Got interrupted"));
+	delay(100);
     allowReceiving = !allowReceiving;
 }
