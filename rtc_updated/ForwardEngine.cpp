@@ -23,12 +23,13 @@
 
 volatile bool allowReceiving = false;
 volatile int immediateInterruptPreventer = 0;
-const int myRTCInterruptPin = 1;
+const int myRTCInterruptPin = 0;
 RTC_PCF8523 adalogger_rtc;
 
 //this is being used rn
 unsigned long sleepTime = 60;//seconds
 unsigned long awakeTime = 60;//seconds
+unsigned long receivingPeriod; 
 
 bool firstGatewayContact = false;
 void rtcISR();
@@ -335,7 +336,7 @@ bool ForwardEngine::run()
             Serial.print(F("adalogger_rtc sleeps for: "));
 			Serial.println(sleepTime);
             adalogger_rtc.deconfigureAllTimers();
-            adalogger_rtc.enableCountdownTimer(PCF8523_FrequencySecond, sleepTime); //15 seconds
+            adalogger_rtc.enableCountdownTimer(PCF8523_FrequencySecond, sleepTime-3); //15 seconds
             delay(100);
             USBCON |= _BV(FRZCLK);
             delay(100);
@@ -574,26 +575,34 @@ bool ForwardEngine::run()
                         GatewayRequest gwReq(myAddr, BROADCAST_ADDR, ((GatewayRequest *)msg)->seqNum, gatewayReqTime, childBackoffTime);
                         gwReq.send(myDriver, BROADCAST_ADDR);
                     }
+					
+					
+					/*
+                    * For less frequent data gathering every 20 minutes or more (e.g. every hours), only receive for 10 minutes
+                    * For more frequent data gathering every 20 minutes or less (e.g. every 5 minutes), receive for 50% of the request interval
+                    */
+						
 					//just received my gatewayreqtime so now i know
 					//that the next tiem gateway requests will be in 
 					//gatewayreqtime ms. set it equal to seconds
 					
 					//if this does not execute its fine cuz defalt
 					//is set up at the top
-					sleepTime = gatewayReqTime / 1e3;
-					if (gatewayReqTime <= 1200)
+					//sleepTime = gatewayReqTime / 1e3;
+					if (gatewayReqTime <= 1200e3)
                     {
-						receivingPeriod = gatewayReqTime / 1e5 / 2;
+						receivingPeriod = gatewayReqTime / 1e3 / 2;
                         //Calculate the end of the receiving period
                         //receivingPeriod = 15;
                     }
 					else
                     {
-						receivingPeriod = 60;
+						receivingPeriod = 600;
                         //receivingPeriod = 20;
                     }
 					//receiving period, time that i need to stay awakeTime
 					//so set awake time equal to this
+					sleepTime = (gatewayReqTime / 1e3) -  receivingPeriod;
 					awakeTime = receivingPeriod;
 					if (awakeTime <= 0 || awakeTime > 600){
 						awakeTime = 78;
