@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+{% block head %}
+
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta charset="UTF-8">
+	<title>Node Location</title>
+	<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD4Op9YmDB7rCpxnKQZaiYrqzhoY4cniB8&callback=initMap"
+	type="text/javascript"></script>
+	<script type="text/javascript">
+	function initMap() {
+		var myLatLngA = { lat: {{nodes[0].Lat}}, lng: {{nodes[0].Long}} };
+		var myLatLngB = { lat: {{nodes[1].Lat}}, lng: {{nodes[1].Long}} };
+		var myLatLngC = { lat: {{nodes[2].Lat}}, lng: {{nodes[2].Long}} };
+		var myLatLngD = { lat: {{nodes[3].Lat}}, lng: {{nodes[3].Long}} };
+		
+		var map = new google.maps.Map(document.getElementById('map'), {
+			center:{lat:19.43047699521416,lng:-99.1372625351003},
+			zoom: 10
+		});
+		
+		new google.maps.Marker({position: myLatLngA,map:map,label:'0'});
+		new google.maps.Marker({position: myLatLngB,map:map,label:'1'});
+		new google.maps.Marker({position: myLatLngC,map:map,label:'2'});
+		new google.maps.Marker({position: myLatLngD,map:map,label:'3'});
+	}
+    </script>
+
+{% endblock %}
+<body>
+<div class="form">
+        <form action="/locations" method="POST">
+            <label for="nodeName">Node Name (Gateway=3):</label>
+            <input type="text" name="nodeName" id="nodeName">
+            <label for="Lat">Latitude:</label>
+            <input type="text" name="Lat" id="Lat">
+            <label for="Lng">Longitude:</label>
+            <input type="text" name="Lng" id="Lng">
+            <input type="submit" value="Change Node Location">
+        </form>
+</div>
+<div class="container">
+    <h1>Node Locations</h1>
+    <div id="map" style="width:100%; height:500px;"></div>
+</div>
+</body>
+</html>

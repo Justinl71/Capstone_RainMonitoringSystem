@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+{% block head %}
+
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta charset="UTF-8">
+	<title>Node Location</title>
+	<script async defer src="https://maps.googleapis.com/maps/api/js?key=<temp>callback=initMap"
+	type="text/javascript"></script>
+	<script type="text/javascript">
+	function initMap() {
+		var myLatLngA = { lat: {{nodes[0].Lat}}, lng: {{nodes[0].Long}} };
+		var myLatLngB = { lat: {{nodes[1].Lat}}, lng: {{nodes[1].Long}} };
+		var myLatLngC = { lat: {{nodes[2].Lat}}, lng: {{nodes[2].Long}} };
+		var myLatLngD = { lat: {{nodes[3].Lat}}, lng: {{nodes[3].Long}} };
+		
+		var map = new google.maps.Map(document.getElementById('map'), {
+			center:{lat:19.43047699521416,lng:-99.1372625351003},
+			zoom: 10
+		});
+
+		google.maps.event.addListener(map, 'click', function(event){
+			addMarker({coords:event.latLng});
+		});
+		
+		var markers = [
+		{
+		position:myLatLngA,
+		content:'Node 1'
+		},
+		{
+		position:myLatLngB,
+		content:'Node 2'
+		},
+		{
+		position:myLatLngC,
+		content:'Node 3'
+		},
+		{
+		position:myLatLngD,
+		iconImage:'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png',
+		content:'<h1>Gateway</h1>'
+		}
+		];
+
+		for(var i = 0; i < markers.length; i++){
+			addMarker(markers[i]);
+		}
+
+		function addMarker(props){
+			var marker = new google.maps.Marker({
+			position:props.coords,
+			map:map,
+			});
+
+			if(props.iconImage){
+				marker.setIcon(props.iconImage);
+			}
+
+			if(props.content){
+				var infoWindow = new google.maps.InfoWindow({
+				content:props.content
+				});
+			marker.addListener('click', function(){
+			infoWindow.open(map, marker);
+			});
+			}
+		}
+	}
+    </script>
+
+{% endblock %}
+<body>
+<div class="form">
+        <form action="/locations" method="POST">
+            <label for="nodeName">Node Name:</label>
+            <input type="text" name="nodeName" id="nodeName">
+            <label for="Lat">Latitude:</label>
+            <input type="text" name="Lat" id="Lat">
+            <label for="Lng">Longitude:</label>
+            <input type="text" name="Lng" id="Lng">
+            <input type="submit" value="Add Task">
+        </form>
+</div>
+<div class="container">
+    <h1>Node Locations</h1>
+    <div id="map" style="width:100%; height:500px;"></div>
+</div>
+</body>
+</html>
