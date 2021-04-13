@@ -322,15 +322,11 @@ bool ForwardEngine::run()
     //The core network operations are carried out here
     while (state == JOINED)
     {
-		Serial.println(F("-----JOINED LOOP-----"));
-		delay(50);
-		Serial.println(firstGatewayContact);
-		delay(50);
-		Serial.println(allowReceiving);
-		delay(50);
-		
+
         if (!allowReceiving && firstGatewayContact)
         {
+			
+			// Set alarm
 			detachInterrupt(digitalPinToInterrupt(myRTCInterruptPin));
 			delay(1000);
             Serial.print(F("adalogger_rtc sleeps for: "));
@@ -582,25 +578,15 @@ bool ForwardEngine::run()
                     * For more frequent data gathering every 20 minutes or less (e.g. every 5 minutes), receive for 50% of the request interval
                     */
 						
-					//just received my gatewayreqtime so now i know
-					//that the next tiem gateway requests will be in 
-					//gatewayreqtime ms. set it equal to seconds
-					
-					//if this does not execute its fine cuz defalt
-					//is set up at the top
-					//sleepTime = gatewayReqTime / 1e3;
 					if (gatewayReqTime <= 1200e3)
                     {
 						receivingPeriod = gatewayReqTime / 1e3 / 2;
-                        //Calculate the end of the receiving period
-                        //receivingPeriod = 15;
                     }
 					else
                     {
 						receivingPeriod = 600;
-                        //receivingPeriod = 20;
                     }
-					//receiving period, time that i need to stay awakeTime
+					//receiving period, time that node needs to stay for is awakeTime
 					//so set awake time equal to this
 					sleepTime = (gatewayReqTime / 1e3) -  receivingPeriod;
 					awakeTime = receivingPeriod;
@@ -627,13 +613,8 @@ bool ForwardEngine::run()
                         //Set receiving flag to be true
                         allowReceiving = true;
 						
-                        //adalogger_rtc.deconfigureAllTimers();
-                        //adalogger_rtc.enableCountdownTimer(PCF8523_FrequencySecond, 60); //15 seconds
-                        //Attach the interrupt
-                        //attachInterrupt(digitalPinToInterrupt(myRTCInterruptPin), rtcISR, FALLING);
-                        //delay(100);
 						delay(100);
-						Serial.println(F("adalogger_rtc turn on first for the first time ever"));
+						Serial.println(F("First time setting RTC alarm"));
 						delay(100);
 						//Set up the alarm for the end of the receiving period
 						adalogger_rtc.deconfigureAllTimers();
