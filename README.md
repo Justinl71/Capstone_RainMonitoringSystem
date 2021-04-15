@@ -20,7 +20,9 @@ The necessary hardware for a gateway:
 ## Hardware Setup
 
 Assemble the node and gateway according to the following schematics:
+Node Schematic
 ![Node Schematic](https://github.com/Justinl71/Capstone_RainMonitoringSystem/blob/master/nodeDiagram.png)
+Gateway Schematic
 ![Gateway Schematic](https://github.com/Justinl71/Capstone_RainMonitoringSystem/blob/master/gatewayDiagram.png)
 
 
@@ -30,9 +32,9 @@ First follow CottonCandy setup for the Adafruit Feather 32u4 device
 https://github.com/infernoDison/cottonCandy 
 
 Install the following libraries by putting the source code into the libraries folder.
-https://github.com/adafruit/RTClib
-https://github.com/rocketscream/Low-Power
-https://github.com/sandeepmistry/arduino-LoRa
+* https://github.com/adafruit/RTClib
+* https://github.com/rocketscream/Low-Power
+* https://github.com/sandeepmistry/arduino-LoRa
 
 
 ### Set up Gateway
@@ -42,14 +44,14 @@ and the Gateway INO file from https://github.com/Justinl71/Capstone_RainMonitori
 Make sure to open serial monitor first as the system will not work otherwise.
 
 ### Set up Node
-To program the node, go to the ForwardEngine in cottonCandy(~/Documents/Arduino/libraries/cottonCandy/ForwardEngine.cpp) and overwrite that file with our modified version at Capstone_RainMonitoringSystem/RainDataCollection/ForwardEngine.cpp
+To program the node, go to the ForwardEngine in cottonCandy(~/Documents/Arduino/libraries/cottonCandy/ForwardEngine.cpp) and overwrite that file with our modified version at * https://github.com/Justinl71/Capstone_RainMonitoringSystem/blob/master/RainDataCollection/ForwardEngine.cpp
 
 Then program each node individually, i.e. Node1.ino, Node2.ino and Node3.ino. Ensure to change the ports inside the Arduino IDE for each node.
-Capstone_RainMonitoringSystem/RainDataCollection/Node/Node1/Node1.ino
-Capstone_RainMonitoringSystem/RainDataCollection/Node/Node2/Node2.ino
-Capstone_RainMonitoringSystem/RainDataCollection/Node/Node3/Node3.ino
+* https://github.com/Justinl71/Capstone_RainMonitoringSystem/tree/master/RainDataCollection/Node/Node1/Node1.ino
+* https://github.com/Justinl71/Capstone_RainMonitoringSystem/tree/master/RainDataCollection/Node/Node2/Node2.ino
+* https://github.com/Justinl71/Capstone_RainMonitoringSystem/tree/master/RainDataCollection/Node/Node3/Node3.ino
 
-Note: if using an external battery to power the node, comment out the following lines in the NodeX.ino file, otherwise the node will hang.
+Note: If using an external battery to power the node, comment out the following lines in the NodeX.ino file, otherwise the node will hang.
 
 ```cpp
 
