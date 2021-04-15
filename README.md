@@ -20,9 +20,9 @@ The necessary hardware for a gateway:
 ## Hardware Setup
 
 Assemble the node and gateway according to the following schematics:
-Node Schematic
+###Node Schematic
 ![Node Schematic](https://github.com/Justinl71/Capstone_RainMonitoringSystem/blob/master/nodeDiagram.png)
-Gateway Schematic
+###Gateway Schematic
 ![Gateway Schematic](https://github.com/Justinl71/Capstone_RainMonitoringSystem/blob/master/gatewayDiagram.png)
 
 
